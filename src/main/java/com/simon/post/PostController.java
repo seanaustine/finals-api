@@ -5,9 +5,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = {"http://localhost:5173/", "https://final-ui-vkcf.onrender.com"})
 @RequestMapping("/simon/posts")
 public class PostController {
 
@@ -40,5 +42,19 @@ public class PostController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Post> updatePost(@PathVariable Long id, @RequestBody Post updatedPost) {
+        return postRepository.findById(id)
+                .map(existingPost -> {
+                    existingPost.setContent(updatedPost.getContent());
+                    existingPost.setImageUrl(updatedPost.getImageUrl());
+                    // Note: We are not updating the author and createdAt to keep them immutable
+                    existingPost.setUpdatedAt(LocalDateTime.now()); // manually update if necessary
+                    Post savedPost = postRepository.save(existingPost);
+                    return ResponseEntity.ok(savedPost);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }
